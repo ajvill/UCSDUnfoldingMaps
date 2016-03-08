@@ -29,6 +29,10 @@ public class HelloWorld extends PApplet
 	// IF YOU ARE WORKING OFFLINE: Change the value of this variable to true
 	private static final boolean offline = false;
 	
+	// Background member variables
+	private int rgb_x = 174;
+	private int rgb_y = 221;
+	
 	/** The map we use to display our home town: La Jolla, CA */
 	UnfoldingMap map1;
 	
@@ -44,7 +48,7 @@ public class HelloWorld extends PApplet
 		// This sets the background color for the Applet.  
 		// Play around with these numbers and see what happens!
 		//this.background(200, 200, 200);
-		this.background(174, 221, 60);
+		this.background(rgb_x, rgb_y, 60);
 		
 		// Select a map provider
 		AbstractMapProvider provider = new Google.GoogleTerrainProvider();
@@ -88,13 +92,19 @@ public class HelloWorld extends PApplet
 	public void draw() {
 		// So far we only draw map1...
 		// TODO: Add code so that both maps are displayed
+		this.background(rgb_x, rgb_y, 60);
 		map1.draw();
 		map2.draw();
 		
-		for (int i = 174; i > 120; i-- )
-		{
-			this.background(i, 221, 60);
-			System.out.println("i = "+ i);
-		}
+		if ( rgb_x < 220 ) 
+			this.rgb_x += 1;
+		else
+			this.rgb_x = 174;
+		
+		if (rgb_y > 50)
+			this.rgb_y -= 1;
+		else
+			this.rgb_y = 221;
+		
 	}
 }
