@@ -24,7 +24,6 @@ import processing.core.PApplet;
  * Date: July 17, 2015
  * */
 public class EarthquakeCityMap extends PApplet {
-	
 	// We will use member variables, instead of local variables, to store the data
 	// that the setUp and draw methods will need to access (as well as other methods)
 	// You will use many of these variables, but the only one you should need to add
@@ -39,8 +38,6 @@ public class EarthquakeCityMap extends PApplet {
 	
 	/** This is where to find the local tiles, for working without an Internet connection */
 	public static String mbTilesString = "blankLight-1-3.mbtiles";
-	
-	
 
 	//feed with magnitude 2.5+ Earthquakes
 	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
@@ -62,13 +59,13 @@ public class EarthquakeCityMap extends PApplet {
 	
 	public void setup() {		
 		// (1) Initializing canvas and map tiles
-		size(900, 700, OPENGL);
+		size(1000, 800, OPENGL);
 		if (offline) {
-		    map = new UnfoldingMap(this, 200, 50, 650, 600, new MBTilesMapProvider(mbTilesString));
+		    map = new UnfoldingMap(this, 200, 50, 750, 700, new MBTilesMapProvider(mbTilesString));
 		    earthquakesURL = "2.5_week.atom";  // The same feed, but saved August 7, 2015
 		}
 		else {
-			map = new UnfoldingMap(this, 200, 50, 650, 600, new Google.GoogleMapProvider());
+			map = new UnfoldingMap(this, 200, 50, 750, 700, new Google.GoogleMapProvider());
 			// IF YOU WANT TO TEST WITH A LOCAL FILE, uncomment the next line
 		    //earthquakesURL = "2.5_week.atom";
 		}
@@ -80,13 +77,13 @@ public class EarthquakeCityMap extends PApplet {
 		//earthquakesURL = "test2.atom";
 		
 		// WHEN TAKING THIS QUIZ: Uncomment the next line
-		//earthquakesURL = "quiz1.atom";
-		
+		earthquakesURL = "quiz1.atom";
 		
 		// (2) Reading in earthquake data and geometric properties
 	    //     STEP 1: load country features and markers
 		List<Feature> countries = GeoJSONReader.loadData(this, countryFile);
 		countryMarkers = MapUtils.createSimpleMarkers(countries);
+		
 		
 		//     STEP 2: read in city data
 		List<Feature> cities = GeoJSONReader.loadData(this, cityFile);
@@ -103,10 +100,12 @@ public class EarthquakeCityMap extends PApplet {
 		  //check if LandQuake
 		  if(isLand(feature)) {
 		    quakeMarkers.add(new LandQuakeMarker(feature));
+		    //System.out.println("Land Quake");
 		  }
 		  // OceanQuakes
 		  else {
 		    quakeMarkers.add(new OceanQuakeMarker(feature));
+		    //System.out.println("Ocean quake");
 		  }
 	    }
 
@@ -142,16 +141,17 @@ public class EarthquakeCityMap extends PApplet {
 		text("Earthquake Key", 50, 75);
 		
 		fill(color(255, 0, 0));
-		ellipse(50, 125, 15, 15);
-		fill(color(255, 255, 0));
-		ellipse(50, 175, 10, 10);
-		fill(color(0, 0, 255));
-		ellipse(50, 225, 5, 5);
+		triangle(50, 120, 45, 130, 55, 130);
+		fill(color(255, 255, 255));
+		ellipse(50, 175, 15, 15);
+		fill(color(255, 255, 255));
+		rect(50, 225, 10, 10);
 		
 		fill(0, 0, 0);
-		text("5.0+ Magnitude", 75, 125);
-		text("4.0+ Magnitude", 75, 175);
-		text("Below 4.0", 75, 225);
+		text("City Marker", 75, 125);
+		text("Land Quakes", 75, 175);
+		text("Ocean Quake", 75, 225);
+		text("Size - Magnitude", 50, 275);
 	}
 
 	
@@ -163,9 +163,13 @@ public class EarthquakeCityMap extends PApplet {
 	private boolean isLand(PointFeature earthquake) {
 		
 		// IMPLEMENT THIS: loop over all countries to check if location is in any of them
-		
 		// TODO: Implement this method using the helper method isInCountry
-		
+		for(Marker country : countryMarkers) {
+			if (isInCountry(earthquake, country)) {
+				// return true if we found an earthquake marker inside a country marker
+				return true;
+			}
+		}
 		// not inside any country
 		return false;
 	}
@@ -178,10 +182,40 @@ public class EarthquakeCityMap extends PApplet {
 	// And LandQuakeMarkers have a "country" property set.
 	private void printQuakes() 
 	{
-		// TODO: Implement this method
+		//int num_countryQuakes = 0;
+		int num_landQuakes = 0;
+		int num_oceanQuakes = 0;
+	
+		// Look for country quakes
+		for ( Marker country : countryMarkers) {
+			int num_countryQuakes = 0;
+			for (Marker quake : quakeMarkers) {
+				if (quake instanceof LandQuakeMarker){
+					// this area is when we find a land quake so now increment the quake count
+					if (country.getProperty("name") == ((LandQuakeMarker) quake).getCountry()) {
+						// keep count of the number of earthquakes we find in a country
+						num_countryQuakes +=1;
+					}
+				} 
+			}
+			// before moving on to the next country lets print out the results of the number of 
+			// earthquakes we found in that country.
+			if (num_countryQuakes >= 1) {
+				System.out.println(country.getProperty("name")+ ": " +num_countryQuakes);
+			}
+		}
+		
+		// Look for ocean quakes
+		for(Marker oceanquakes: quakeMarkers) {
+			if(oceanquakes instanceof OceanQuakeMarker) {
+				num_oceanQuakes += 1;
+			}
+		}
+		// before heading out of here print out the number of earthquakes we found in the ocean
+		System.out.println("OCEAN QUAKES: " +num_oceanQuakes);
+		//System.out.println("LAND QUAKES: " +totalLandQuakes);
+		//System.out.println("QUAKE TOTAL: " +totalQuakes);
 	}
-	
-	
 	
 	// helper method to test whether a given earthquake is in a given country
 	// This will also add the country property to the properties of the earthquake 
@@ -216,5 +250,4 @@ public class EarthquakeCityMap extends PApplet {
 		}
 		return false;
 	}
-
 }
